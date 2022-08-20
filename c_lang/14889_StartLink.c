@@ -57,7 +57,7 @@ void combination(int n, int r) {
     if (r == 0) {
         // team1이 완성되었으니 나머지 번호로 team2를 구성
         cnt = 1;
-        for (int i = 1; i <= N; i++) {
+        for (int i = 1; i < N; i++) {
             if (!is_team1(i)) {team2[cnt] = i; cnt++;}
         }
       
