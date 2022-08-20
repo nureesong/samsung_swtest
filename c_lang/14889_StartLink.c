@@ -28,7 +28,7 @@ void input(void) {
         for (int j = 1; j <= N; j++) {
             scanf("%d", &S[i][j]);
             // 팀 번호가 오름차순이므로 upper triangle만 사용하기 위해 S_ij와 S_ji 더하기
-            S[j][i] += S[i][j];
+            if (i > j) S[j][i] += S[i][j];
         }
     }
 }
