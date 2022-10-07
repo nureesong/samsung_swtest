@@ -5,12 +5,12 @@
 /************************************/
 
 #include <iostream>
-#include <deque>
+#include <vector>
 using namespace std;
 
 int N, K;
 int brd[12 + 2][12 + 2];    // 체스판 0:빈칸, 1:빨강, 2:파랑(테두리도 파랑!)
-deque<int> arr[12 + 2][12 + 2]; // 쌓여있는 말 번호 (한칸 당 최대 3개 쌓일 수 있음)
+vector<int> arr[12 + 2][12 + 2]; // 쌓여있는 말 번호 (한칸 당 최대 3개 쌓일 수 있음)
 
 struct HORSE {
 	int r, c, d;
