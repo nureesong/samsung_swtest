@@ -1,15 +1,20 @@
-#define _CRT_SECURE_NO_WARNINGS
-
-/************************************/
+/*************************************************************/
 // [5648] 원자 소멸 시뮬레이션
+// 0.5초 단위로 충돌이 일어나므로 x,y좌표 2배해서 정수로 만들기!
+// 원자 2개씩 골라서 몇 초에 충돌하는지 구한 뒤 우큐에 넣기
+// 과거에 소멸한 원자를 또다시 충돌처리 하지 않도록, 
+// 우큐에서 충돌시각이 가장 빠른 것부터 꺼내서 원자별로 가장 빠른 충돌시각을 기록
 //
-// 원자 2개씩 비교해서 몇 초에 충돌하는지 구한 뒤 우큐에 넣기
-// 우큐에서 충돌시간이 가장 빠른 것부터 꺼내서 처리
-/************************************/
-#if 1
+// 우큐 안 쓰면 문제가 되는 반례
+// (1,2) 5초 - mint = [5 5 . .]
+// (1,3) 4초 - mint = [4 5 4 .] 
+//            1,2번 충돌은 취소되어야 하는데 여전히 5초로 기록되어 있음!!
+// (2,4) 7초 - 이것이 7초의 충돌로 기록되어야 할 상황이지만 
+//            2번의 충돌이 5초라고 기록되어 있는 상황 때문에 기록되지 못함
+/**************************************************************/
+
 #include <iostream>
-#include <map>
-#include <unordered_set>
+#include <queue>
 #include <algorithm>
 using namespace std;
 
@@ -20,8 +25,15 @@ struct ATOM {
 
 int mint[1000]; // 충돌시각 최솟값
 
-// key: 충돌시각(오름차순), value: 충돌하는 원자들 번호
-map<int, unordered_set<int>> rem;
+struct DATA {
+    int a, b, t; // 충돌하는 두 원자번호, 충돌시각
+};
+struct COMP {
+    bool operator()(DATA &a, DATA &b) {
+        return a.t >  b.t;
+    }
+};
+priority_queue<DATA, vector<DATA>, COMP> pq; // 충돌시각 기준 오름차순
 
 
 void Input() {
@@ -59,12 +71,11 @@ int Check(int i, int j) {
 			if (dx == dy) t = dx;
 		}
 	}
-	
 	return t;
 }
 
 
-int Solve() {
+void Simulation() {
 	for (int i = 0; i < N - 1; i++) {
 		for (int j = i + 1; j < N; j++) {
 			if (arr[i].d == arr[j].d) continue; // 방향이 같으면 절대 충돌X
@@ -82,70 +93,37 @@ int Solve() {
 			// 두 원자가 충돌하는지 확인
 			int t = Check(a, b);
 			if (t == -1) continue; // 충돌X
-
-			// 두 원자가 t초보다 일찍 충돌한 적 있으면 지금 시점에는 소멸된 상태
-			
-			if (mint[i] < t || mint[j] < t) {
-
-				continue;
-			}
-			
-			// t초가 더 빠르면, 기존에 rem에 기록해놨던 거 삭제해야 함
-			rem[mint[i]].erase(i);
-			rem[mint[j]].erase(i);
-			mint[i] = mint[j] = t;
-
-
-			// 충돌O: 충돌시각에 원자 번호 추가
-			//auto it = rem.find(t);
-			//if (it != rem.end()) {  // t초에 충돌한 원자가 없으면 추가
-			//	rem.insert({ t, {i,j} });
-			//}
-			//else {
-			//	rem[t].insert(i);
-			//	rem[t].insert(j);
-			//}
-
-
-			cout << (char)(i + 'A') << " " << (char)(j + 'A') << "  t = " << t << "\n";
-
+            pq.push({i,j,t}); // 충돌하는 원자쌍 전부 저장
 		}
 	}
-
-	int sum = 0;
-	for (int i = 0; i < N; i++) {
-		if (mint[i] < 0x7fffffff) sum += arr[i].k;
-		cout << mint[i] << " ";
-	}
-	cout << "\n\n";
-	return sum;
 }
 
-//int Solve() {
-//	int sum = 0;
-//
-//	for (auto it = rem.begin(); it != rem.end(); it++) {
-//		int t = it->first; // 충돌시각
-//
-//		for (int n : it->second) {
-//			sum += arr[n].k;
-//		}
-//	}
-//	return sum;
-//}
+int Solve() {
+    while (!pq.empty()) {
+        DATA cur = pq.top(); pq.pop();
+        
+        // 기존 충돌 기록이 더 빠른 경우, 이미 소멸한 원자이므로 지금 충돌은 무의미
+        if (mint[cur.a] < cur.t || mint[cur.b] < cur.t) continue;
+        mint[cur.a] = mint[cur.b] = cur.t;
+    }
+	
+    int sum = 0;
+	for (int i = 0; i < N; i++) {
+		if (mint[i] < 0x7fffffff) sum += arr[i].k;
+	}
+	return sum;
+}
 
 int main() {
 	ios_base::sync_with_stdio(0);
 	cin.tie(0);
 	cout.tie(0);
 
-	freopen("in.txt", "r", stdin);
-
 	int T;
 	cin >> T;
 	for (int i = 1; i <= T; i++) {
 		Input();
+        Simulation();
 		cout << "#" << i << " " << Solve() << "\n";
 	}
 }
-#endif
