@@ -1,10 +1,10 @@
 /*****************************************************/
 // [2042] 구간 합 구하기 (골드1)
-// - 인덱스 트리, 세그먼트 트리 (둘이 같은건가??)
-// int(4B): 2^31, long long(8B): 2^63
+// 인덱스 트리: O(N + Q*logN)  204ms, 18729KB
+// N = 10^6 = 2^20 --> tree 최대크기 = 2^21
+// 처음부터 tree에 입력받으면 arr 배열 필요없음!
 // 2의 제곱수: 1부터 왼쪽으로 비트 한칸씩 이동 (<< 1)
 // 2로 나눈 몫: 오른쪽으로 비트 한칸 이동 (>> 1)
-// Out of Bounds 에러남....
 /*****************************************************/
 
 #include <iostream>
@@ -12,86 +12,60 @@
 using namespace std;
 
 int N, M, K;
-vector<long long> arr; // 8B * 100만 = 800MB?? 메모리 초과 아닌가??
-int n_leaf;
-vector<long long> tree;
+int n_leaf;  // 리프노드 시작인덱스 = 2^ceil(log2 N)
+vector<long long> tree; //
 struct QUERY {
     int a, b;
     long long c;
-}Q[10000];
+}Q[20000];
 
 
 void Input() {
     cin >> N >> M >> K;
-    arr.resize(N);
+    // N보다 큰, 가장 작은 2의 제곱수
+    for (n_leaf = 1; n_leaf < N; n_leaf <<= 1);  // O(logN)
+    tree.resize(n_leaf * 2); // 트리 전체 노드수 = 리프노드 수 * 2
+
     for (int i = 0; i < N; i++) {
-        cin >> arr[i];
+        cin >> tree[i + n_leaf];
     }
     for (int i = 0; i < M+K; i++) {
         cin >> Q[i].a >> Q[i].b >> Q[i].c;
     }
 }
 
-void Print() {
-    for (auto i : tree) {
-        cout << i  << " ";
-    }
-    cout << "\n";
-}
-
+// [트리 생성] Bottom-up 방식 O(N)
 void MakeTree() {
-    // 1. leaf node의 개수 = N보다 큰, 가장 작은 2의 제곱수
-    n_leaf = 1;
-    while (n_leaf < N) {
-        n_leaf <<= 1;
-    }
-    tree.resize(n_leaf * 2); // 트리의 노드수 = 리프노드 수 * 2
-
-    // 2. 구간 합 계산 : O(N * logN)
-    // n_leaf = 리프노드의 시작 인덱스
-    for (int i = 0; i < N; i++) {
-        long long num = arr[i];
-        int idx = n_leaf + i;
-
-        while (idx >= 1) {
-            tree[idx] += num;
-            idx >>= 1;  // 2로 나누는 것과 동일!
-        }
+    for (int i = n_leaf-1; i > 0; i--) {
+        tree[i] = tree[2*i] + tree[2*i + 1];
     }
 }
 
+// O(logN)
 void update(int i, long long num) {
-    int idx = i + n_leaf;
-    long long diff = num - arr[i];
-    while (idx >= 1) {
-        tree[idx] += diff;
-        idx >>= 1;
+    long long diff = num - tree[i];
+    while (i >= 1) {
+        tree[i] += diff;
+        i >>= 1;
     }
 }
 
+// range query : O(logN)
 long long interval_sum(int s, int e) {
-    s += n_leaf;
-    e += n_leaf;
-
     long long sum = 0;
     while (s <= e) {
-        if (s % 2) sum += tree[s]; // 시작인덱스가 홀수면 리프노드값 더하기
-        if (e % 2 == 0) sum += tree[e]; // 끝인덱스가 짝수면 리프노드값 더하기
-        s = (s + 1) / 2;  // 오른쪽 리프노드의 부모노드
-        e = (e - 1) / 2;  // 왼쪽 리프노드의 부모노드
+        if (s % 2) sum += tree[s];       // 시작 인덱스가 홀수이면 리프노드값 더하기
+        if (e % 2 == 0) sum += tree[e];  //  끝 인덱스가 짝수이면 리프노드값 더하기
+        s = (s + 1) / 2;  // s의 오른쪽 노드의 부모노드
+        e = (e - 1) / 2;  // e의 왼쪽 노드의 부모노드
     }
     return sum;
 }
 
 void Solve() {
-    int sz = M + K;
-    for (int i = 0; i < sz; i++) {
-        if (Q[i].a == 1) {
-            update(Q[i].b-1, Q[i].c);
-        }
-        else {
-            cout << interval_sum(Q[i].b-1, Q[i].c-1) << "\n";
-        }
+    for (int i = 0; i < M+K; i++) {
+        if (Q[i].a == 1) update(Q[i].b-1 + n_leaf, Q[i].c);
+        else cout << interval_sum(Q[i].b-1 + n_leaf, Q[i].c-1 + n_leaf) << "\n";
     }
 }
 
