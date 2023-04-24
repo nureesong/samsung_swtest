@@ -1,7 +1,7 @@
 /*****************************************************/
 // [4195] 친구 네트워크 (골드2)
-// - 유니온파인드
-// - OutOfBounds 에러!!!
+// - 유니온파인드: 100ms 18912KB
+// - 엣지수 최대 10만 -> 노드수 최대 20만
 /*****************************************************/
 
 #include <iostream>
@@ -10,8 +10,7 @@
 using namespace std;
 
 int F;
-//vector<int> p, cnt;
-int p[100001], cnt[100001];
+int p[200000], cnt[200000];
 unordered_map<string, int> num;
 
 
@@ -34,13 +33,6 @@ void Union(int a, int b) {
     }
 }
 
-//void Print(vector<int> v) {
-//    for (auto i : v) {
-//        cout << i << " ";
-//    }
-//    cout << "\n";
-//}
-
 void Print(int* arr, int N) {
     for (int i = 0; i < N; i++) {
         cout << arr[i] << " ";
@@ -49,17 +41,14 @@ void Print(int* arr, int N) {
 }
 
 void Solve() {
-    string a, b;
+    string s1, s2;
     int N = 0;
     for (int i = 0; i < F; i++) {
-        cin >> a >> b;
-        if (num.find(a) == num.end()) num.insert({a, N++});
-        if (num.find(b) == num.end()) num.insert({b, N++});
-        Union(num[a], num[b]);
-        cout << "Union " << num[a] << " " << num[b] << "\n";
-        Print(p, N);
-        Print(cnt, N);
-        cout << cnt[find_root(num[a])] + 1 << "\n";
+        cin >> s1 >> s2;
+        if (num.find(s1) == num.end()) num[s1] = N++;
+        if (num.find(s2) == num.end()) num[s2] = N++;
+        Union(num[s1], num[s2]);
+        cout << cnt[find_root(num[s1])] + 1 << "\n";
     }
 
 }
@@ -69,20 +58,15 @@ int main() {
     cin.tie(0);
     cout.tie(0);
 
-    freopen("input.txt", "r", stdin);
-
     int T;
     cin >> T;
     while (T--) {
         cin >> F;
         num.clear();
-//        p.clear(); p.resize(F+1);
-//        cnt.clear(); cnt.resize(F+1);
-        for (int i = 0; i < 100001; i++) {
+        for (int i = 0; i < 2*F; i++) {
             p[i] = i;
             cnt[i] = 0;
         }
-
         Solve();
     }
 }
