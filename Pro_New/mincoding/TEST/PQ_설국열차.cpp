@@ -1,5 +1,4 @@
-/* 설국열차 솔루션- */
-//#include <iostream>
+/* 설국열차 솔루션 */
 #include <queue>
 #include <vector>
 using namespace std;
@@ -28,8 +27,8 @@ void init(int NN, int MM, int JJ, int Point[], int JobID[]) {
         int tID = i / M; // i번 승객이 탑승한 객차번호
         Where[i] = tID;
         Job[JobID[i]].push_back(i);
-        pq[tID].push(make_pair(P[i], i));
-        rev[tID].push(make_pair(P[i], i));
+        pq[tID].push(make_pair(P[i], -i));
+        rev[tID].push(make_pair(P[i], -i));
     }
 }
 
@@ -106,7 +105,7 @@ int move(int num) {
     return sum;
 }
 
-/////////////////////////////////////////////////
+///////////////////////////////////////////////////////
 #ifndef _CRT_SECURE_NO_WARNINGS
 #define _CRT_SECURE_NO_WARNINGS
 #endif
@@ -129,23 +128,19 @@ extern int move(int num);
 static int Point[MAX_N];
 static int JobID[MAX_N];
 
-static int run()
-{
+static int run() {
     int isOK = 0;
     int N;
     int cmd, result, check;
-
     int mN, mM, mJ;
     int mID, mJobID;
     int mPoint, mNum;
 
     scanf("%d", &N);
 
-    for (int c = 0; c < N; ++c)
-    {
+    for (int c = 0; c < N; ++c) {
         scanf("%d", &cmd);
-        switch (cmd)
-        {
+        switch (cmd) {
             case CMD_INIT:
                 scanf("%d %d %d", &mN, &mM, &mJ);
                 for (int i = 0; i < mN; i++) scanf("%d", &Point[i]);
@@ -153,37 +148,30 @@ static int run()
                 init(mN, mM, mJ, Point, JobID);
                 isOK = 1;
                 break;
-
             case CMD_UPDATE:
                 scanf("%d %d", &mID, &mPoint);
                 result = update(mID, mPoint);
                 scanf("%d", &check);
-
-                printf("[300] %d %d\n", result, check);
+                //printf("[300] %d %d\n", result, check);
                 if (result != check)
                     isOK = 0;
                 break;
-
             case CMD_UPDATE_JOB:
                 scanf("%d %d", &mJobID, &mPoint);
                 result = updateByJob(mJobID, mPoint);
                 scanf("%d", &check);
-
-                printf("[400] %d %d\n", result, check);
+                //printf("[400] %d %d\n", result, check);
                 if (result != check)
                     isOK = 0;
                 break;
-
             case CMD_MOVE:
                 scanf("%d", &mNum);
                 result = move(mNum);
                 scanf("%d", &check);
-
-                printf("[500] %d %d\n", result, check);
+                //printf("[500] %d %d\n", result, check);
                 if (result != check)
                     isOK = 0;
                 break;
-
             default:
                 isOK = 0;
                 break;
@@ -198,8 +186,7 @@ int main() {
     int T, MARK;
     scanf("%d %d", &T, &MARK);
 
-    for (int tc = 1; tc <= T; tc++)
-    {
+    for (int tc = 1; tc <= T; tc++) {
         if (run()) printf("#%d %d\n", tc, MARK);
         else printf("#%d %d\n", tc, 0);
     }
